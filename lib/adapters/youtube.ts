@@ -1,0 +1,71 @@
+/**
+ * YouTube adapter
+ * Auth: OAuth2, scopes youtube.readonly + yt-analytics.readonly
+ * Requires: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET in env
+ * Setup: Google Cloud → enable YouTube Data API v3 + YouTube Analytics API
+ *        → OAuth consent screen (External, Testing) → add your email as test user
+ *        → run OAuth flow once → store refresh_token in accounts table
+ */
+import type { Account, DailyMetric, PlatformAdapter } from './types'
+
+export const youtubeAdapter: PlatformAdapter = {
+  key: 'youtube',
+
+  async refreshToken(acct: Account): Promise<Account> {
+    const res = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        client_id: process.env.GOOGLE_CLIENT_ID!,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+        refresh_token: acct.refresh_token!,
+        grant_type: 'refresh_token',
+      }),
+    })
+    const data = await res.json()
+    return {
+      ...acct,
+      access_token: data.access_token,
+      token_expires_at: new Date(Date.now() + data.expires_in * 1000).toISOString(),
+    }
+  },
+
+  async fetchDaily(acct: Account, sinceDays: number): Promise<DailyMetric[]> {
+    const channelId = (acct.meta as Record<string, string>).channel_id
+    const token = acct.access_token!
+    const end = new Date()
+    const start = new Date(end)
+    start.setDate(start.getDate() - sinceDays)
+    const fmt = (d: Date) => d.toISOString().slice(0, 10)
+
+    // Analytics: views, likes, comments, subscribersGained per day
+    const analyticsUrl = new URL('https://youtubeanalytics.googleapis.com/v2/reports')
+    analyticsUrl.searchParams.set('ids', 'channel==MINE')
+    analyticsUrl.searchParams.set('startDate', fmt(start))
+    analyticsUrl.searchParams.set('endDate', fmt(end))
+    analyticsUrl.searchParams.set('metrics', 'views,likes,comments,subscribersGained')
+    analyticsUrl.searchParams.set('dimensions', 'day')
+    const analyticsRes = await fetch(analyticsUrl, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    const analyticsData = await analyticsRes.json()
+
+    // Current subscriber count
+    const statsRes = await fetch(
+      `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${channelId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    const statsData = await statsRes.json()
+    const subscriberCount = Number(statsData.items?.[0]?.statistics?.subscriberCount ?? 0)
+
+    const rows: DailyMetric[] = (analyticsData.rows ?? []).map((row: number[]) => ({
+      date: String(row[0]),
+      views: row[1],
+      likes: row[2],
+      comments: row[3],
+      followers: subscriberCount, // point-in-time; daily accumulation needs subscribersGained math
+      extra: { subscribersGained: row[4] },
+    }))
+    return rows
+  },
+}
