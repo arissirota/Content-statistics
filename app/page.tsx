@@ -370,10 +370,11 @@ export default function SignalDashboard() {
         .ch-ic svg{width:18px;height:18px;stroke:var(--acc)}
         .ch-name{font-family:var(--dspl);font-weight:600;font-size:15px;line-height:1.1}
         .ch-cov{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;color:var(--dim);margin-top:3px}
-        .ch-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-        .m .mk{font-size:10px;color:var(--dim);letter-spacing:.06em;text-transform:uppercase}
-        .m .mv{font-family:var(--mono);font-weight:600;font-size:16px;margin-top:3px}
-        .m .mv small{font-size:10px;font-weight:500}
+        .ch-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+        .m{background:rgba(232,232,255,.04);border:1px solid var(--line);border-radius:9px;padding:9px 11px}
+        .m .mk{font-size:9.5px;color:var(--mut);letter-spacing:.08em;text-transform:uppercase;font-weight:500}
+        .m .mv{font-family:var(--mono);font-weight:700;font-size:18px;margin-top:5px;color:var(--txt);line-height:1}
+        .m .mv small{font-size:11px;font-weight:500}
         .spark{height:40px}
         .spark svg{width:100%;height:100%;overflow:visible}
         .foot{color:var(--dim);font-size:11.5px;text-align:center;margin-top:26px;letter-spacing:.02em;font-family:var(--mono)}
