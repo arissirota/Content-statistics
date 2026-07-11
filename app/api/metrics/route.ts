@@ -87,11 +87,15 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // Fill platforms with no real data using sample data so the chart never crashes
+  // Pad all platforms to full `days` length so the chart never crashes on short arrays
   const sample = generateSampleData(days)
+  const allDates = sample['youtube'].map(r => r.date)
   for (const platform of ['youtube', 'instagram', 'tiktok', 'snapchat']) {
     if (result[platform].length === 0) {
       result[platform] = sample[platform]
+    } else {
+      const realByDate = Object.fromEntries(result[platform].map(r => [r.date, r]))
+      result[platform] = allDates.map(date => realByDate[date] ?? { date, followers: 0, views: 0, likes: 0, comments: 0 })
     }
   }
 

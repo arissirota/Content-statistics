@@ -48,7 +48,7 @@ export default function SignalDashboard() {
       .then(r => r.json())
       .then(data => {
         DATA = data
-        DAYS = data.youtube?.length ?? 366
+        DAYS = Math.max(...Object.values(data).map((a: unknown) => (a as unknown[]).length ?? 0), 1)
         const today = new Date()
         const syncEl = document.getElementById('synctime')
         if (syncEl) syncEl.textContent = today.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' 03:12'
