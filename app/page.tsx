@@ -103,9 +103,10 @@ export default function SignalDashboard() {
         eng += sumRange(p.key, 'engagement', start, end)
         eprev += sumRange(p.key, 'engagement', prevStart, start)
         const a = DATA[p.key]
-        folNow += a[end - 1].followers
-        folThen += a[start].followers
-        folPrevThen += a[prevStart].followers
+        if (!a || a.length === 0) return
+        folNow += (a[Math.min(end - 1, a.length - 1)] ?? a[a.length - 1]).followers
+        folThen += (a[Math.min(start, a.length - 1)] ?? a[0]).followers
+        folPrevThen += (a[Math.min(prevStart, a.length - 1)] ?? a[0]).followers
       })
       const gained = folNow - folThen, gainedPrev = folThen - folPrevThen
       const rate = views > 0 ? (eng / views) * 100 : 0
@@ -156,7 +157,8 @@ export default function SignalDashboard() {
         let v = 0
         P.forEach(p => {
           if (!active[p.key]) return
-          const a = DATA[p.key][i]
+          const a = DATA[p.key]?.[i]
+          if (!a) return
           v += metric === 'followers' ? a.followers : metric === 'engagement' ? a.likes + a.comments : a.views
         })
         series.push(v)
