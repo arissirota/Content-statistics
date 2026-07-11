@@ -20,6 +20,7 @@ export async function GET(req: NextRequest) {
   if (!accounts || accounts.length === 0) {
     return NextResponse.json({ ok: true, message: 'No accounts configured yet', synced_at: new Date().toISOString() })
   }
+  const foundPlatforms = accounts.map((a: { platform: string }) => a.platform)
 
   const { youtubeAdapter } = await import('../../../lib/adapters/youtube')
   const { instagramAdapter } = await import('../../../lib/adapters/instagram')
@@ -61,5 +62,5 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, synced_at: new Date().toISOString(), results })
+  return NextResponse.json({ ok: true, synced_at: new Date().toISOString(), results, foundPlatforms })
 }
