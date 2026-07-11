@@ -23,10 +23,11 @@ export const youtubeAdapter: PlatformAdapter = {
       }),
     })
     const data = await res.json()
+    if (!data.access_token) throw new Error(`Token refresh failed: ${data.error} - ${data.error_description}`)
     return {
       ...acct,
       access_token: data.access_token,
-      token_expires_at: new Date(Date.now() + data.expires_in * 1000).toISOString(),
+      token_expires_at: new Date(Date.now() + (data.expires_in ?? 3600) * 1000).toISOString(),
     }
   },
 
