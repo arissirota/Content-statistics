@@ -41,7 +41,8 @@ export async function GET(req: NextRequest) {
         token_expires_at: refreshed.token_expires_at,
       }).eq('platform', adapter.key)
 
-      const metrics = await adapter.fetchDaily(refreshed, 3)
+      const sinceDays = Number(req.nextUrl.searchParams.get('days') ?? '3')
+      const metrics = await adapter.fetchDaily(refreshed, sinceDays)
       for (const m of metrics) {
         await db.from('daily_snapshots').upsert({
           platform: adapter.key,
