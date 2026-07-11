@@ -41,14 +41,16 @@ export default function SignalDashboard() {
     let metric = 'views'
     const active: Record<string, boolean> = { youtube: true, instagram: true, tiktok: true, snapchat: true }
 
-    let DATA: Record<string, { date: string; followers: number; views: number; likes: number; comments: number }[]> = {}
+    let DATA: Record<string, { date: string; followers: number; views: number; likes: number; comments: number; extra?: Record<string, unknown> }[]> = {}
+    let CONNECTED: string[] = []
     let DAYS = 366
 
     fetch('/api/metrics?days=366')
       .then(r => r.json())
       .then(data => {
+        CONNECTED = data._connected ?? []
         DATA = data
-        DAYS = Math.max(...Object.values(data).map((a: unknown) => (a as unknown[]).length ?? 0), 1)
+        DAYS = Math.max(...Object.values(data).filter(a => Array.isArray(a)).map((a: unknown) => (a as unknown[]).length ?? 0), 1)
         const today = new Date()
         const syncEl = document.getElementById('synctime')
         if (syncEl) syncEl.textContent = today.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' 03:12'
@@ -260,11 +262,18 @@ export default function SignalDashboard() {
             <div><div class="ch-name">${p.name}</div><div class="ch-cov">${p.cov}</div></div>
           </div>
           <div class="ch-metrics">
+            ${CONNECTED.includes(p.key) ? `
             <div class="m"><div class="mk">Followers</div><div class="mv">${fmt(fNow)} <small style="color:${gained >= 0 ? '#6FE39A' : '#FF6B6B'}">${gained >= 0 ? '+' : ''}${fmt(gained)}</small></div></div>
             <div class="m"><div class="mk">Views</div><div class="mv">${fmt(views)}</div></div>
             <div class="m"><div class="mk">Likes</div><div class="mv">${fmt(likes)}</div></div>
             <div class="m"><div class="mk">Comments</div><div class="mv">${fmt(comments)}</div></div>
             ${uploads > 0 ? `<div class="m"><div class="mk">Uploads</div><div class="mv">${uploads}</div></div>` : ''}
+            ` : `
+            <div class="m"><div class="mk">Followers</div><div class="mv not-connected">—</div></div>
+            <div class="m"><div class="mk">Views</div><div class="mv not-connected">—</div></div>
+            <div class="m"><div class="mk">Likes</div><div class="mv not-connected">—</div></div>
+            <div class="m"><div class="mk">Comments</div><div class="mv not-connected">—</div></div>
+            `}
           </div>
           <div class="spark"><svg viewBox="0 0 116 40" preserveAspectRatio="none">
             <path d="${sparkPath(spk, 116, 40)}" fill="none" stroke="${p.acc}" stroke-width="1.6" stroke-linejoin="round"/>
@@ -380,6 +389,7 @@ export default function SignalDashboard() {
         .m .mk{font-size:9.5px;color:var(--mut);letter-spacing:.08em;text-transform:uppercase;font-weight:500}
         .m .mv{font-family:var(--mono);font-weight:700;font-size:18px;margin-top:5px;color:var(--txt);line-height:1}
         .m .mv small{font-size:11px;font-weight:500}
+        .m .mv.not-connected{color:var(--dim);font-size:22px;line-height:1}
         .spark{height:40px}
         .spark svg{width:100%;height:100%;overflow:visible}
         .foot{color:var(--dim);font-size:11.5px;text-align:center;margin-top:26px;letter-spacing:.02em;font-family:var(--mono)}

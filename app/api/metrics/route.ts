@@ -88,6 +88,9 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // Track which platforms have real data before padding
+  const connected = ['youtube', 'instagram', 'tiktok', 'snapchat'].filter(p => result[p].length > 0)
+
   // Pad all platforms to full `days` length so the chart never crashes on short arrays
   const sample = generateSampleData(days)
   const allDates = sample['youtube'].map(r => r.date)
@@ -104,7 +107,7 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json(result, {
+  return NextResponse.json({ ...result, _connected: connected }, {
     headers: { 'Cache-Control': 's-maxage=300, stale-while-revalidate' },
   })
 }
