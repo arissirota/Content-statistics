@@ -95,7 +95,11 @@ export async function GET(req: NextRequest) {
       result[platform] = sample[platform]
     } else {
       const realByDate = Object.fromEntries(result[platform].map(r => [r.date, r]))
-      result[platform] = allDates.map(date => realByDate[date] ?? { date, followers: 0, views: 0, likes: 0, comments: 0 })
+      let lastFollowers = 0
+      result[platform] = allDates.map(date => {
+        if (realByDate[date]) { lastFollowers = realByDate[date].followers; return realByDate[date] }
+        return { date, followers: lastFollowers, views: 0, likes: 0, comments: 0 }
+      })
     }
   }
 
