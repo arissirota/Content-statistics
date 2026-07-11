@@ -48,7 +48,7 @@ export default function SignalDashboard() {
     fetch('/api/metrics?days=366')
       .then(r => r.json())
       .then(data => {
-        CONNECTED = data._connected ?? []
+        CONNECTED = data._has_data ?? data._connected ?? []
         DATA = data
         DAYS = Math.max(...Object.values(data).filter(a => Array.isArray(a)).map((a: unknown) => (a as unknown[]).length ?? 0), 1)
         const today = new Date()

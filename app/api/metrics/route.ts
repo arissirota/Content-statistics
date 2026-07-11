@@ -88,10 +88,11 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // TikTok is connected if env token exists, even if no snapshots yet
+  // connected = has auth token; hasData = has real snapshots
   const connected = ['youtube', 'instagram', 'tiktok', 'snapchat'].filter(p =>
     result[p].length > 0 || (p === 'tiktok' && !!process.env.TIKTOK_ACCESS_TOKEN)
   )
+  const hasData = ['youtube', 'instagram', 'tiktok', 'snapchat'].filter(p => result[p].length > 0)
 
   // Pad all platforms to full `days` length so the chart never crashes on short arrays
   const sample = generateSampleData(days)
@@ -109,7 +110,7 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ...result, _connected: connected }, {
+  return NextResponse.json({ ...result, _connected: connected, _has_data: hasData }, {
     headers: { 'Cache-Control': 's-maxage=300, stale-while-revalidate' },
   })
 }
