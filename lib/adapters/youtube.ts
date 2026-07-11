@@ -31,8 +31,18 @@ export const youtubeAdapter: PlatformAdapter = {
   },
 
   async fetchDaily(acct: Account, sinceDays: number): Promise<DailyMetric[]> {
-    const channelId = (acct.meta as Record<string, string>).channel_id
     const token = acct.access_token!
+
+    // Look up channel ID if not cached in meta
+    let channelId = (acct.meta as Record<string, string>)?.channel_id
+    if (!channelId) {
+      const chRes = await fetch(
+        'https://www.googleapis.com/youtube/v3/channels?part=id&mine=true',
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      const chData = await chRes.json()
+      channelId = chData.items?.[0]?.id ?? ''
+    }
     const end = new Date()
     const start = new Date(end)
     start.setDate(start.getDate() - sinceDays)
