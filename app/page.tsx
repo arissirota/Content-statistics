@@ -100,6 +100,7 @@ export default function SignalDashboard() {
       let views = 0, vprev = 0, eng = 0, eprev = 0, folNow = 0, folThen = 0, folPrevThen = 0
       P.forEach(p => {
         if (!active[p.key]) return
+        if (!CONNECTED.includes(p.key)) return
         views += sumRange(p.key, 'views', start, end)
         vprev += sumRange(p.key, 'views', prevStart, start)
         eng += sumRange(p.key, 'engagement', start, end)
@@ -159,6 +160,7 @@ export default function SignalDashboard() {
         let v = 0
         P.forEach(p => {
           if (!active[p.key]) return
+          if (!CONNECTED.includes(p.key)) return
           const a = DATA[p.key]?.[i]
           if (!a) return
           v += metric === 'followers' ? a.followers : metric === 'engagement' ? a.likes + a.comments : a.views
@@ -239,7 +241,8 @@ export default function SignalDashboard() {
       host.innerHTML = ''
       P.forEach(p => {
         const a = DATA[p.key]
-        const views = sumRange(p.key, 'views', start, DAYS)
+        const isConnected = CONNECTED.includes(p.key)
+        const views = isConnected ? sumRange(p.key, 'views', start, DAYS) : 0
         const eng = sumRange(p.key, 'engagement', start, DAYS)
         let likes = 0, comments = 0, uploads = 0
         for (let i = start; i < DAYS; i++) {
