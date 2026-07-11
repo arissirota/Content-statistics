@@ -8,7 +8,7 @@ export function GET(request: Request) {
     client_key: process.env.TIKTOK_CLIENT_KEY!,
     redirect_uri: `${baseUrl}/api/auth/tiktok/callback`,
     response_type: 'code',
-    scope: 'user.info.basic,video.list',
+    scope: 'user.info.basic',
   })
   return NextResponse.redirect(`https://www.tiktok.com/v2/auth/authorize/?${params}`)
 }
