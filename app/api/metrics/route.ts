@@ -72,7 +72,7 @@ export async function GET(req: NextRequest) {
     })
   }
 
-  const result: Record<string, { date: string; followers: number; views: number; likes: number; comments: number }[]> = {
+  const result: Record<string, { date: string; followers: number; views: number; likes: number; comments: number; extra?: Record<string, unknown> }[]> = {
     youtube: [], instagram: [], tiktok: [], snapchat: [],
   }
   for (const row of data) {
