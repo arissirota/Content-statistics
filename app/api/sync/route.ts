@@ -30,8 +30,15 @@ export async function GET(req: NextRequest) {
 
   const results: Record<string, unknown> = {}
 
+  // TikTok credentials from env vars (fallback when accounts table doesn't return them)
+  const tiktokEnvAcct = process.env.TIKTOK_ACCESS_TOKEN ? {
+    platform: 'tiktok', handle: null, access_token: process.env.TIKTOK_ACCESS_TOKEN,
+    refresh_token: process.env.TIKTOK_REFRESH_TOKEN, token_expires_at: null, meta: {},
+  } : null
+
   for (const adapter of adapters) {
     const acct = accounts.find((a: { platform: string }) => a.platform === adapter.key)
+      ?? (adapter.key === 'tiktok' ? tiktokEnvAcct : null)
     if (!acct) { results[adapter.key] = 'no account'; continue }
 
     try {
