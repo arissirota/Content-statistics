@@ -88,8 +88,10 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // Track which platforms have real data before padding
-  const connected = ['youtube', 'instagram', 'tiktok', 'snapchat'].filter(p => result[p].length > 0)
+  // TikTok is connected if env token exists, even if no snapshots yet
+  const connected = ['youtube', 'instagram', 'tiktok', 'snapchat'].filter(p =>
+    result[p].length > 0 || (p === 'tiktok' && !!process.env.TIKTOK_ACCESS_TOKEN)
+  )
 
   // Pad all platforms to full `days` length so the chart never crashes on short arrays
   const sample = generateSampleData(days)
