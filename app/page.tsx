@@ -239,8 +239,12 @@ export default function SignalDashboard() {
         const a = DATA[p.key]
         const views = sumRange(p.key, 'views', start, DAYS)
         const eng = sumRange(p.key, 'engagement', start, DAYS)
-        let likes = 0, comments = 0
-        for (let i = start; i < DAYS; i++) { likes += a[i].likes; comments += a[i].comments }
+        let likes = 0, comments = 0, uploads = 0
+        for (let i = start; i < DAYS; i++) {
+          if (!a[i]) continue
+          likes += a[i].likes; comments += a[i].comments
+          uploads += (a[i] as unknown as { extra?: { uploads?: number } }).extra?.uploads ?? 0
+        }
         const fNow = a[DAYS - 1].followers, fThen = a[start].followers, gained = fNow - fThen
         const rate = views > 0 ? (eng / views) * 100 : 0
         const spk: number[] = []
@@ -260,6 +264,7 @@ export default function SignalDashboard() {
             <div class="m"><div class="mk">Views</div><div class="mv">${fmt(views)}</div></div>
             <div class="m"><div class="mk">Likes</div><div class="mv">${fmt(likes)}</div></div>
             <div class="m"><div class="mk">Comments</div><div class="mv">${fmt(comments)}</div></div>
+            ${uploads > 0 ? `<div class="m"><div class="mk">Uploads</div><div class="mv">${uploads}</div></div>` : ''}
           </div>
           <div class="spark"><svg viewBox="0 0 116 40" preserveAspectRatio="none">
             <path d="${sparkPath(spk, 116, 40)}" fill="none" stroke="${p.acc}" stroke-width="1.6" stroke-linejoin="round"/>

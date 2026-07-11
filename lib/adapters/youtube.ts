@@ -61,21 +61,51 @@ export const youtubeAdapter: PlatformAdapter = {
     })
     const analyticsData = await analyticsRes.json()
 
-    // Current subscriber count
+    // Current subscriber count + uploads playlist ID
     const statsRes = await fetch(
-      `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${channelId}`,
+      `https://www.googleapis.com/youtube/v3/channels?part=statistics,contentDetails&id=${channelId}`,
       { headers: { Authorization: `Bearer ${token}` } }
     )
     const statsData = await statsRes.json()
     const subscriberCount = Number(statsData.items?.[0]?.statistics?.subscriberCount ?? 0)
+    const uploadsPlaylistId = statsData.items?.[0]?.contentDetails?.relatedPlaylists?.uploads ?? ''
+
+    // Count uploads per day by paginating the uploads playlist
+    const uploadsByDate: Record<string, number> = {}
+    if (uploadsPlaylistId) {
+      let pageToken: string | undefined
+      do {
+        const params = new URLSearchParams({
+          part: 'contentDetails',
+          playlistId: uploadsPlaylistId,
+          maxResults: '50',
+          ...(pageToken ? { pageToken } : {}),
+        })
+        const plRes = await fetch(
+          `https://www.googleapis.com/youtube/v3/playlistItems?${params}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        )
+        const plData = await plRes.json()
+        for (const item of plData.items ?? []) {
+          const date = String(item.contentDetails?.videoPublishedAt ?? '').slice(0, 10)
+          if (date >= fmt(start) && date <= fmt(end)) {
+            uploadsByDate[date] = (uploadsByDate[date] ?? 0) + 1
+          }
+        }
+        pageToken = plData.nextPageToken
+        // Stop early if all items are older than our window
+        const oldest = (plData.items ?? []).at(-1)?.contentDetails?.videoPublishedAt ?? ''
+        if (oldest && oldest < fmt(start)) break
+      } while (pageToken)
+    }
 
     const rows: DailyMetric[] = (analyticsData.rows ?? []).map((row: number[]) => ({
       date: String(row[0]),
       views: row[1],
       likes: row[2],
       comments: row[3],
-      followers: subscriberCount, // point-in-time; daily accumulation needs subscribersGained math
-      extra: { subscribersGained: row[4] },
+      followers: subscriberCount,
+      extra: { subscribersGained: row[4], uploads: uploadsByDate[String(row[0])] ?? 0 },
     }))
     return rows
   },

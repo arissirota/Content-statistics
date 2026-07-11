@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await db
     .from('daily_snapshots')
-    .select('platform, snapshot_date, followers, views, likes, comments')
+    .select('platform, snapshot_date, followers, views, likes, comments, extra')
     .gte('snapshot_date', sinceStr)
     .order('snapshot_date', { ascending: true })
 
@@ -83,6 +83,7 @@ export async function GET(req: NextRequest) {
         views: row.views ?? 0,
         likes: row.likes ?? 0,
         comments: row.comments ?? 0,
+        extra: row.extra ?? {},
       })
     }
   }
