@@ -162,7 +162,8 @@ export default function SignalDashboard() {
           v += metric === 'followers' ? a.followers : metric === 'engagement' ? a.likes + a.comments : a.views
         })
         series.push(v)
-        ds.push(DATA[P[0].key][i].date)
+        const d = new Date(); d.setDate(d.getDate() - (DAYS - 1 - i))
+        ds.push(d.toISOString().slice(0, 10))
       }
       CUR = { series, ds }
       const W = (chart as unknown as SVGElement).clientWidth || 900
